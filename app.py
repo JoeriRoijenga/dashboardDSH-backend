@@ -47,6 +47,8 @@ def login_user():
                 return make_response(jsonify({'message': 'Unknown Error'}), 400)
             finally:
                 close_conn(conn)
+        return make_response(jsonify({'message': 'Wrong Credentials'}), 401)
+    return make_response(jsonify({'message': 'Wrong Format'}), 400)
 
 
 @app.route('/user/create', methods=["post"])
