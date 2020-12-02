@@ -71,6 +71,8 @@ def create_user():
         finally:
             close_conn(conn)
 
+    return make_response(jsonify({'message': 'Wrong Format'}), 400)
+
 
 @app.route('/user/get', methods=["GET"])
 def get_users():
