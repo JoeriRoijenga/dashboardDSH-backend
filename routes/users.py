@@ -1,6 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify
 from passlib.hash import sha256_crypt
 from connection_settings import connect, close
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 
 users_bp = Blueprint("users", __name__)
 
@@ -8,7 +9,7 @@ users_bp = Blueprint("users", __name__)
 @users_bp.route('/login', methods=["post"])
 def login_user():
     connection, cursor = connect()
-
+    print("test")
     if request.is_json:
         user = request.get_json()["user"]
 
@@ -19,7 +20,9 @@ def login_user():
 
                 while row:
                     if sha256_crypt.verify(user["pwd"], row[0]):
-                        return make_response(jsonify({'message': 'User Exists'}), 202)
+                        access_token = create_access_token(identity={"mail": user['mail']})
+                        print(access_token)
+                        return make_response(jsonify({'access_token': access_token}), 202)
                     row = cursor.fetchone()
 
                 return make_response(jsonify({'message': 'User Doesn\'t Exists'}), 401)
@@ -55,6 +58,7 @@ def create_user():
 
 
 @users_bp.route('/get/all', methods=["GET"])
+@jwt_required
 def get_users():
     try:
         connection, cursor = connect()
@@ -69,6 +73,7 @@ def get_users():
 
 
 @users_bp.route('/get/<string:_id>', methods=["GET"])
+@jwt_required
 def get_user(_id):
     try:
         connection, cursor = connect()
@@ -85,6 +90,7 @@ def get_user(_id):
 
 
 @users_bp.route('/update/<string:_id>', methods=["PUT"])
+@jwt_required
 def update_user(_id):
     if request.is_json:
         user = request.get_json()["user"]

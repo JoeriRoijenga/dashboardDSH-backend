@@ -1,6 +1,5 @@
 import pyodbc
 
-
 driver = "{ODBC Driver 17 for SQL Server}"
 server = "tcp:iot-db-roijenga.database.windows.net,1433"
 database = "iot-db-weather-pi"
