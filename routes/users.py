@@ -9,9 +9,9 @@ users_bp = Blueprint("users", __name__)
 @users_bp.route('/login', methods=["post"])
 def login_user():
     connection, cursor = connect()
-    print("test")
+
     if request.is_json:
-        user = request.get_json()["user"]
+        user = request.get_json()
 
         if check_if_user_exists_by_mail(cursor, user['mail']):
             try:
@@ -21,8 +21,8 @@ def login_user():
                 while row:
                     if sha256_crypt.verify(user["pwd"], row[0]):
                         access_token = create_access_token(identity={"mail": user['mail']})
-                        print(access_token)
-                        return make_response(jsonify({'access_token': access_token}), 202)
+
+                        return make_response(jsonify({'access_token': access_token}), 200)
                     row = cursor.fetchone()
 
                 return make_response(jsonify({'message': 'User Doesn\'t Exists'}), 401)
@@ -44,8 +44,7 @@ def create_user():
             connection, cursor = connect()
 
             if not check_if_user_exists_by_mail(cursor, user["mail"]):
-                cursor.execute("INSERT INTO users (name, password, mail) VALUES (?, ?, ?);", user["name"], pwd_hash,
-                             user["mail"])
+                cursor.execute("INSERT INTO users (name, password, mail) VALUES (?, ?, ?);", user["name"], pwd_hash, user["mail"])
                 connection.commit()
                 return make_response(jsonify({'message': 'User created successfully'}), 201)
             return make_response(jsonify({'message': 'User already exists'}), 400)
