@@ -1,7 +1,8 @@
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, jsonify
 from passlib.hash import sha256_crypt
 from connection_settings import connect, close
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, create_refresh_token, \
+    jwt_refresh_token_required
 
 users_bp = Blueprint("users", __name__)
 
@@ -20,18 +21,21 @@ def login_user():
 
                 while row:
                     if sha256_crypt.verify(user["pwd"], row[0]):
-                        access_token = create_access_token(identity={"mail": user['mail']})
+                        tokens = {
+                            'access_token': create_access_token(identity={"mail": user['mail']}),
+                            'refresh_token': create_refresh_token(identity={"mail": user['mail']})
+                        }
 
-                        return make_response(jsonify({'access_token': access_token}), 200)
+                        return jsonify({'tokens': tokens}), 200
                     row = cursor.fetchone()
 
-                return make_response(jsonify({'message': 'User Doesn\'t Exists'}), 401)
+                return jsonify({'error': 'User Doesn\'t Exists'}), 401
             except:
-                return make_response(jsonify({'error': 'Unknown Error'}), 400)
+                return jsonify({'error': 'Unknown Error'}), 400
             finally:
                 close(connection)
-        return make_response(jsonify({'error': 'Wrong Credentials'}), 401)
-    return make_response(jsonify({'error': 'Wrong Format'}), 400)
+        return jsonify({'error': 'Wrong Credentials'}), 401
+    return jsonify({'error': 'Wrong Format'}), 400
 
 
 @users_bp.route('/create', methods=["post"])
@@ -46,14 +50,14 @@ def create_user():
             if not check_if_user_exists_by_mail(cursor, user["mail"]):
                 cursor.execute("INSERT INTO users (name, password, mail) VALUES (?, ?, ?);", user["name"], pwd_hash, user["mail"])
                 connection.commit()
-                return make_response(jsonify({'message': 'User created successfully'}), 201)
-            return make_response(jsonify({'message': 'User already exists'}), 400)
+                return jsonify({'message': 'User created successfully'}), 201
+            return jsonify({'message': 'User already exists'}), 400
         except:
-            return make_response(jsonify({'error': 'Unknown Error'}), 400)
+            return jsonify({'error': 'Unknown Error'}), 400
         finally:
             close(connection)
 
-    return make_response(jsonify({'error': 'Wrong Format'}), 400)
+    return jsonify({'error': 'Wrong Format'}), 400
 
 
 @users_bp.route('/get/all', methods=["GET"])
@@ -64,9 +68,9 @@ def get_users():
 
         cursor.execute("SELECT name, mail FROM users;")
         users = fetch_all_users(cursor)
-        return make_response(jsonify({'users': users}), 200)
+        return jsonify({'users': users}), 200
     except:
-        return make_response(jsonify({'message': 'Unknown Error'}), 400)
+        return jsonify({'message': 'Unknown Error'}), 400
     finally:
         close(connection)
 
@@ -80,10 +84,10 @@ def get_user(_id):
         if check_if_user_exists_by_id(cursor, _id):
             cursor.execute("SELECT name, mail FROM users WHERE id = ?;", _id)
 
-            return make_response(jsonify({'user': fetch_all_users(cursor)}), 200)
-        return make_response(jsonify({'message': 'User Doesn\'t Exists'}), 401)
+            return jsonify({'user': fetch_all_users(cursor)}), 200
+        return jsonify({'message': 'User Doesn\'t Exists'}), 401
     except:
-        return make_response(jsonify({'error': 'Unknown Error'}), 400)
+        return jsonify({'error': 'Unknown Error'}), 400
     finally:
         close(connection)
 
@@ -98,14 +102,24 @@ def update_user(_id):
             connection, cursor = connect()
             if check_if_user_exists_by_id(cursor, _id):
                 cursor.execute("UPDATE users SET name = ?, mail = ?;", user["name"], user["mail"])
-                return make_response(jsonify({'message': 'OK'}), 200)
-            return make_response(jsonify({'message': 'User Doesn\'t Exists'}), 401)
+                return jsonify({'message': 'OK'}), 200
+            return jsonify({'message': 'User Doesn\'t Exists'}), 401
         except:
-            return make_response(jsonify({'message': 'Unknown Error'}), 400)
+            return jsonify({'message': 'Unknown Error'}), 400
         finally:
             close(connection)
 
-    return make_response(jsonify({'message': 'Wrong Format'}), 400)
+    return jsonify({'message': 'Wrong Format'}), 400
+
+
+@users_bp.route('/refresh', methods=['POST'])
+@jwt_refresh_token_required
+def refresh():
+    current_user = get_jwt_identity()
+    token = {
+        'access_token': create_access_token(identity=current_user)
+    }
+    return jsonify(token), 200
 
 
 def fetch_all_users(cursor):
