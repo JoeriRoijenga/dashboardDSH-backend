@@ -16,14 +16,14 @@ def login_user():
 
         if check_if_user_exists_by_mail(cursor, user['mail']):
             try:
-                cursor.execute("SELECT password FROM users WHERE mail = ?;", user['mail'])
+                cursor.execute("SELECT id, name, password FROM users WHERE mail = ?;", user['mail'])
                 row = cursor.fetchone()
 
                 while row:
-                    if sha256_crypt.verify(user["pwd"], row[0]):
+                    if sha256_crypt.verify(user["pwd"], row[2]):
                         tokens = {
-                            'access_token': create_access_token(identity={"mail": user['mail']}),
-                            'refresh_token': create_refresh_token(identity={"mail": user['mail']})
+                            'access_token': create_access_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']}),
+                            'refresh_token': create_refresh_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']})
                         }
 
                         return jsonify({'tokens': tokens}), 200
@@ -116,10 +116,8 @@ def update_user(_id):
 @jwt_refresh_token_required
 def refresh():
     current_user = get_jwt_identity()
-    token = {
-        'access_token': create_access_token(identity=current_user)
-    }
-    return jsonify(token), 200
+    # print(current_user)
+    return jsonify({'access_token': create_access_token(identity=current_user)}), 200
 
 
 def fetch_all_users(cursor):
