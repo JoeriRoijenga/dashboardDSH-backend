@@ -2,10 +2,12 @@ from flask import Blueprint, request, jsonify
 from passlib.hash import sha256_crypt
 from connection_settings import connect, close
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, create_refresh_token, \
-    jwt_refresh_token_required
+    jwt_refresh_token_required, get_raw_jwt
 
 users_bp = Blueprint("users", __name__)
 
+# Local storage for JWT-tokens, might be smart to put those in the Azure Database
+listOfTokens = dict()
 
 @users_bp.route('/login', methods=["post"])
 def login_user():
@@ -25,6 +27,7 @@ def login_user():
                             'access_token': create_access_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']}),
                             'refresh_token': create_refresh_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']})
                         }
+                        listOfTokens[tokens["refresh_token"]] = tokens["access_token"]
 
                         return jsonify({'tokens': tokens}), 200
                     row = cursor.fetchone()
@@ -35,6 +38,18 @@ def login_user():
             finally:
                 close(connection)
         return jsonify({'error': 'Wrong Credentials'}), 401
+    return jsonify({'error': 'Wrong Format'}), 400
+
+
+@users_bp.route('/logout', methods=["post"])
+def logout_user():
+    if request.is_json:
+        token = request.get_json()["token"]
+        
+        if token in listOfTokens:
+            del listOfTokens[token]
+            return jsonify({"message": "Logout Success"}), 200
+
     return jsonify({'error': 'Wrong Format'}), 400
 
 
@@ -115,9 +130,14 @@ def update_user(_id):
 @users_bp.route('/refresh', methods=['POST'])
 @jwt_refresh_token_required
 def refresh():
-    current_user = get_jwt_identity()
-    # print(current_user)
-    return jsonify({'access_token': create_access_token(identity=current_user)}), 200
+    if request.is_json:
+        token = request.get_json()
+        
+        if token["refresh_token"] in listOfTokens:
+            current_user = get_jwt_identity()
+            return jsonify({'access_token': create_access_token(identity=current_user)}), 200 
+
+    return jsonify({"message": "Unauthorized refresh token"}), 401
 
 
 def fetch_all_users(cursor):

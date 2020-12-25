@@ -7,6 +7,9 @@ from flask_jwt_extended import JWTManager
 app = Flask(__name__)
 
 app.config["JWT_SECRET_KEY"] = "0BB00075E0A451F529A02D3F5EB73F1FE8CC80016AD8BDCF71159533164267E-random-key"
+# app.config['JWT_BLACKLIST_ENABLED'] = True
+# app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+
 jwt = JWTManager(app)
 
 CORS(app)
