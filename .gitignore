@@ -1,2 +1,6 @@
 /venv/
 .idea/*
+node_modules
+launch.json
+.DS_Store
+__pycache__
