@@ -1,18 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from passlib.hash import sha256_crypt
 from connection_settings import connect, close
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, create_refresh_token, \
-    jwt_refresh_token_required, get_raw_jwt
-
+    jwt_refresh_token_required, get_raw_jwt, get_jti
+import time
+import datetime
+ 
 users_bp = Blueprint("users", __name__)
-
-# Local storage for JWT-tokens, might be smart to put those in the Azure Database
-listOfTokens = dict()
+# jwt_test = current_app.config['jwt']
 
 @users_bp.route('/login', methods=["post"])
 def login_user():
     connection, cursor = connect()
-
+    
     if request.is_json:
         user = request.get_json()
 
@@ -27,7 +27,6 @@ def login_user():
                             'access_token': create_access_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']}),
                             'refresh_token': create_refresh_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']})
                         }
-                        listOfTokens[tokens["refresh_token"]] = tokens["access_token"]
 
                         return jsonify({'tokens': tokens}), 200
                     row = cursor.fetchone()
@@ -42,15 +41,17 @@ def login_user():
 
 
 @users_bp.route('/logout', methods=["post"])
+@jwt_required
 def logout_user():
-    if request.is_json:
-        token = request.get_json()["token"]
-        
-        if token in listOfTokens:
-            del listOfTokens[token]
-            return jsonify({"message": "Logout Success"}), 200
+    blacklist = current_app.config['blacklist']
+    jti = get_raw_jwt()['jti']
+    blacklist.add(jti)
 
-    return jsonify({'error': 'Wrong Format'}), 400
+    if request.is_json and len(request.get_json()) != 0:
+        token = request.get_json()["token"]
+        blacklist.add(get_jti(token))
+
+    return jsonify({"msg": "Successfully logged out"}), 200
 
 
 @users_bp.route('/create', methods=["post"])
@@ -130,15 +131,12 @@ def update_user(_id):
 @users_bp.route('/refresh', methods=['POST'])
 @jwt_refresh_token_required
 def refresh():
-    if request.is_json:
-        token = request.get_json()
-        
-        if token["refresh_token"] in listOfTokens:
-            current_user = get_jwt_identity()
-            return jsonify({'access_token': create_access_token(identity=current_user)}), 200 
-
-    return jsonify({"message": "Unauthorized refresh token"}), 401
-
+    current_user = get_jwt_identity()
+    body = {
+        'access_token': create_access_token(identity=current_user)
+    }
+    return jsonify(body), 200 
+    
 
 def fetch_all_users(cursor):
     dictionary = {}
