@@ -56,14 +56,20 @@ def logout_user():
 @users_bp.route('/create', methods=["post"])
 def create_user():
     if request.is_json:
-        user = request.get_json()["user"]
+        user = request.get_json()
+        print(user)
         pwd_hash = sha256_crypt.hash(user["pwd"])
-
         try:
             connection, cursor = connect()
 
             if not check_if_user_exists_by_mail(cursor, user["mail"]):
-                cursor.execute("INSERT INTO users (name, password, mail) VALUES (?, ?, ?);", user["name"], pwd_hash, user["mail"])
+                print("user doesn't exist")
+                sql = "INSERT INTO users (name, password, mail, admin) VALUES ('%s', '%s', '%s', %i);" % (user["name"], pwd_hash, user["mail"], user["admin"])
+                print(sql)
+                cursor.execute("INSERT INTO users (name, password, mail, admin) VALUES ('test', '$5$rounds=535000$XmDybfeUJ6GeQ0AH$ft0oh2jDSwOdOcsT4DuBZOpqTpNruwxnMJIqZ6xSgVD', 'test@test.com', 1);")
+                # cursor.execute("INSERT INTO users (name, password, mail, admin) VALUES (?, ?, ?, ?);", user["name"], pwd_hash, user["mail"], user["admin"])
+                # cursor.execute(sql)
+                print("voor commit")
                 connection.commit()
                 return jsonify({'message': 'User created successfully'}), 201
             return jsonify({'message': 'User already exists'}), 400

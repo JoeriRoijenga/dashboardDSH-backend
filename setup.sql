@@ -24,10 +24,10 @@ IF OBJECT_ID('dbo.settings', 'u') IS NOT NULL
 -- Table `dbo`.`users`
 -- SQLINES DEMO *** ------------------------------------
 CREATE TABLE dbo.users (
-  [id] INT NOT NULL IDENTITY,
+  [id] INT NOT NULL IDENTITY(1,1),
   [mail] VARCHAR(45) NOT NULL,
-  [username] VARCHAR(45) NOT NULL,
-  [password] VARCHAR(45) NOT NULL,
+  [name] VARCHAR(45) NOT NULL,
+  [password] VARCHAR(100) NOT NULL,
   [admin] SMALLINT NOT NULL,
   PRIMARY KEY ([id]))
 ;
