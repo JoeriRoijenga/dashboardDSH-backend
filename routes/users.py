@@ -7,7 +7,6 @@ import time
 import datetime
  
 users_bp = Blueprint("users", __name__)
-# jwt_test = current_app.config['jwt']
 
 @users_bp.route('/login', methods=["post"])
 def login_user():
