@@ -117,7 +117,6 @@ CREATE INDEX [fk_sensors_has_actuators_sensors_idx] ON dbo.settings ([sensors_id
 CREATE TABLE dbo.general_settings (
   [id] INT NOT NULL IDENTITY,
   [type] VARCHAR(45) NOT NULL,
-  [value] INT NOT NULL,
   [on] SMALLINT NOT NULL,
   PRIMARY KEY ([id]))
 ;

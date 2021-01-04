@@ -57,8 +57,8 @@ def logout_user():
 def create_user():
     if request.is_json:
         user = request.get_json()
-        print(user)
         pwd_hash = sha256_crypt.hash(user["pwd"])
+
         try:
             connection, cursor = connect()
 
@@ -116,7 +116,7 @@ def update_user(_id):
         try:
             connection, cursor = connect()
             if check_if_user_exists_by_id(cursor, _id):
-                cursor.execute("UPDATE users SET name = ?, mail = ?;", user["name"], user["mail"])
+                cursor.execute("UPDATE users SET name = ?, mail = ? WHERE id = ?;", user["name"], user["mail"], _id)
                 return jsonify({'message': 'OK'}), 200
             return jsonify({'message': 'User Doesn\'t Exists'}), 401
         except:
