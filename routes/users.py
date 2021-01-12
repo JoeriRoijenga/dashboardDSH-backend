@@ -81,7 +81,7 @@ def get_users():
     try:
         connection, cursor = connect()
 
-        cursor.execute("SELECT * FROM users;")
+        cursor.execute("SELECT name, mail, admin FROM users;")
         users = fetch_all_users(cursor)
         return jsonify({'users': users}), 200
     except:
@@ -143,7 +143,7 @@ def fetch_all_users(cursor):
     count = 0
 
     while row:
-        dictionary[count] = {'name': row[0], 'mail': row[1]}
+        dictionary[count] = {'name': row[0], 'mail': row[1], 'admin': row[2]}
         row = cursor.fetchone()
         count += 1
 
