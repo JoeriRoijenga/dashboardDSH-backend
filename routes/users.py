@@ -81,7 +81,7 @@ def get_users():
     try:
         connection, cursor = connect()
 
-        cursor.execute("SELECT name, mail FROM users;")
+        cursor.execute("SELECT * FROM users;")
         users = fetch_all_users(cursor)
         return jsonify({'users': users}), 200
     except:
