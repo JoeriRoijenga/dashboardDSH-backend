@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
-from routes import users_bp, settings_bp
+from routes import users_bp, settings_bp, graphs_bp
 from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
@@ -26,6 +26,7 @@ def check_if_token_in_blacklist(decrypted_token):
 def register_blueprints():
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(settings_bp, url_prefix="/settings")
+    app.register_blueprint(graphs_bp, url_prefix="/graphs")
 
 if __name__ == '__main__':
     register_blueprints()

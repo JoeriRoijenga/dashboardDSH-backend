@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from connection_settings import connect, close
-import json
 
 settings_bp = Blueprint("settings", __name__)
 
