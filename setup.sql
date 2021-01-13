@@ -200,7 +200,6 @@ CREATE TABLE dbo.sensor_settings (
   [sensors_id] INT NOT NULL,
   [type] VARCHAR(45) NOT NULL,
   [value] INT NOT NULL,
-  [on] SMALLINT NOT NULL,
   PRIMARY KEY ([id], [sensors_id], [type])
  ,
   CONSTRAINT [fk_sensor_settings_sensors1]

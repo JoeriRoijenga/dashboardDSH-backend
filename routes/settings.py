@@ -67,6 +67,7 @@ def get_sensors(_id):
     finally:
         close(connection)
 
+
 @settings_bp.route('/get/sensor/types', methods=["GET"])
 @jwt_required
 def get_sensor_types():
@@ -128,3 +129,23 @@ def save_sensor_type_notifications(_id):
             return jsonify({'error': 'Unknown Error'}), 400
         finally:
             close(connection)
+
+@settings_bp.route('/get/actuators', methods=["GET"])
+@jwt_required
+def get_actuators():
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT actuators.id, actuators.name, actuators.current_state, actuator_types.name, actuator_types.type FROM actuators JOIN actuator_types ON actuators.actuator_types_id = actuator_types.id")
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "name": row[1], "current_state": row[2], "type_name": row[3], "type": row[4]})
+            row = cursor.fetchone()
+
+        return jsonify({'actuators': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        close(connection)
