@@ -87,3 +87,25 @@ def get_sensor_types():
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
         close(connection)
+
+
+@settings_bp.route('/get/sensor/type/notifications/<string:_id>', methods=["GET"])
+@jwt_required
+def get_sensor_type_notifications(_id):
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT \"type\", \"on\" FROM sensor_types_settings WHERE sensor_types_id = ?;", _id)
+
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"type": row[0], "on": row[1]})
+            row = cursor.fetchone()
+
+        return jsonify({'notification_settings': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        close(connection)

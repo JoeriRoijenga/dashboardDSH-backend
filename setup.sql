@@ -7,15 +7,17 @@ IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'db
 IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.sensors'))
   ALTER TABLE dbo.sensors DROP CONSTRAINT fk_sensors_sensor_types1;  
 
+IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.sensor_settings'))
+  ALTER TABLE dbo.sensor_settings DROP CONSTRAINT fk_sensor_settings_sensors1;  
+
+IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.sensor_types_settings'))
+  ALTER TABLE dbo.sensor_types_settings DROP CONSTRAINT fk_sensor_types_sensor_types_settings_types1;
+
 IF EXISTS(SELECT 2 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.rules'))  
   ALTER TABLE dbo.rules DROP CONSTRAINT fk_sensors_has_actuators_sensors;
 
 IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.rules'))
-  ALTER TABLE dbo.rules DROP CONSTRAINT fk_sensors_has_actuators_actuators1;  
-  
-IF EXISTS(SELECT 1 FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID(N'dbo.sensor_settings'))
-  ALTER TABLE dbo.sensor_settings DROP CONSTRAINT fk_sensor_settings_sensors1;  
-
+  ALTER TABLE dbo.rules DROP CONSTRAINT fk_sensors_has_actuators_actuators1;    
 
 IF OBJECT_ID('dbo.users', 'u') IS NOT NULL 
   DROP TABLE dbo.users;
@@ -28,6 +30,9 @@ IF OBJECT_ID('dbo.sensors', 'u') IS NOT NULL
 
 IF OBJECT_ID('dbo.sensor_types', 'u') IS NOT NULL 
   DROP TABLE dbo.sensor_types;
+
+IF OBJECT_ID('dbo.sensor_types_settings', 'u') IS NOT NULL 
+  DROP TABLE dbo.sensor_types_settings;
 
 IF OBJECT_ID('dbo.actuators', 'u') IS NOT NULL 
   DROP TABLE dbo.actuators;
@@ -64,6 +69,23 @@ CREATE TABLE dbo.sensor_types (
   [id] INT NOT NULL IDENTITY,
   [name] VARCHAR(45) NOT NULL,
   PRIMARY KEY ([id]))
+;
+
+-- SQLINES DEMO *** ------------------------------------
+-- SQLINES DEMO *** `dbo.sensor_types_settings`
+-- SQLINES DEMO *** ------------------------------------
+CREATE TABLE dbo.sensor_types_settings (
+  [id] INT NOT NULL IDENTITY,
+  [sensor_types_id] INT NOT NULL,
+  [type] VARCHAR(45) NOT NULL,
+  [on] INT NOT NULL
+  PRIMARY KEY ([id], [sensor_types_id])
+  ,
+  CONSTRAINT [fk_sensor_types_sensor_types_settings_types1]
+    FOREIGN KEY ([sensor_types_id])
+    REFERENCES dbo.sensor_types ([id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ;
 
 -- SQLINES DEMO *** ------------------------------------
