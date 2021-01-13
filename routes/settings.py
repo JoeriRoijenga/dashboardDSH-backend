@@ -109,3 +109,22 @@ def get_sensor_type_notifications(_id):
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
         close(connection)
+
+
+@settings_bp.route('/save/sensor/type/notifications/<string:_id>', methods=["PUT"])
+@jwt_required
+def save_sensor_type_notifications(_id):
+    if (request.is_json):
+        settings = request.get_json()["settings"]
+        try:
+            connection, cursor = connect()
+    
+            for key in settings.keys():
+                cursor.execute("UPDATE sensor_types_settings SET \"on\" = ? WHERE \"type\" = ? AND \"sensor_types_id\" = ?;", str(settings[key]), str(key), _id)
+    
+            connection.commit()
+            return jsonify({'message': "success"}), 200
+        except:
+            return jsonify({'error': 'Unknown Error'}), 400
+        finally:
+            close(connection)
