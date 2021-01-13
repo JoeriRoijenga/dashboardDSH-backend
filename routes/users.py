@@ -81,7 +81,7 @@ def get_users():
     try:
         connection, cursor = connect()
 
-        cursor.execute("SELECT * FROM users;")
+        cursor.execute("SELECT name, mail, admin FROM users;")
         users = fetch_all_users(cursor)
         return jsonify({'users': users}), 200
     except:
@@ -97,7 +97,7 @@ def get_user(_id):
         connection, cursor = connect()
 
         if check_if_user_exists_by_id(cursor, _id):
-            cursor.execute("SELECT name, mail FROM users WHERE id = ?;", _id)
+            cursor.execute("SELECT name, mail, admin FROM users WHERE id = ?;", _id)
 
             return jsonify({'user': fetch_all_users(cursor)}), 200
         return jsonify({'message': 'User Doesn\'t Exists'}), 401
@@ -116,7 +116,7 @@ def update_user(_id):
         try:
             connection, cursor = connect()
             if check_if_user_exists_by_id(cursor, _id):
-                cursor.execute("UPDATE users SET name = ?, mail = ? WHERE id = ?;", user["name"], user["mail"], _id)
+                cursor.execute("UPDATE users SET name = ?, mail = ?, admin = ? WHERE id = ?;", user["name"], user["mail"], user['admin'], _id)
                 return jsonify({'message': 'OK'}), 200
             return jsonify({'message': 'User Doesn\'t Exists'}), 401
         except:
@@ -143,7 +143,7 @@ def fetch_all_users(cursor):
     count = 0
 
     while row:
-        dictionary[count] = {'name': row[0], 'mail': row[1]}
+        dictionary[count] = {'name': row[0], 'mail': row[1], 'admin': row[2]}
         row = cursor.fetchone()
         count += 1
 
