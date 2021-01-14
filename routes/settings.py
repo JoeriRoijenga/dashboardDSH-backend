@@ -7,6 +7,8 @@ settings_bp = Blueprint("settings", __name__)
 @settings_bp.route('/get/general', methods=["GET"])
 @jwt_required
 def get_general_settings():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -23,12 +25,14 @@ def get_general_settings():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
-
+        if connection is not None:
+            close(connection)
 
 @settings_bp.route('/save/general', methods=["PUT"])
 @jwt_required
 def save_general_settings():
+    connection = None
+
     if (request.is_json):
         settings = request.get_json()["settings"]
         try:
@@ -42,12 +46,15 @@ def save_general_settings():
         except:
             return jsonify({'error': 'Unknown Error'}), 400
         finally:
-            close(connection)
+            if connection is not None:
+                close(connection)
 
 
 @settings_bp.route('/get/sensors/<string:_id>', methods=["GET"])
 @jwt_required
 def get_sensors(_id):
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -64,12 +71,15 @@ def get_sensors(_id):
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/get/sensor/types', methods=["GET"])
 @jwt_required
 def get_sensor_types():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -86,12 +96,15 @@ def get_sensor_types():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/get/sensor/type/notifications/<string:_id>', methods=["GET"])
 @jwt_required
 def get_sensor_type_notifications(_id):
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -108,12 +121,15 @@ def get_sensor_type_notifications(_id):
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/save/sensor/type/notifications/<string:_id>', methods=["PUT"])
 @jwt_required
 def save_sensor_type_notifications(_id):
+    connection = None
+
     if (request.is_json):
         settings = request.get_json()["settings"]
         try:
@@ -127,11 +143,14 @@ def save_sensor_type_notifications(_id):
         except:
             return jsonify({'error': 'Unknown Error'}), 400
         finally:
-            close(connection)
+            if connection is not None:
+                close(connection)
 
 @settings_bp.route('/get/actuators', methods=["GET"])
 @jwt_required
 def get_actuators():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -147,4 +166,5 @@ def get_actuators():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)

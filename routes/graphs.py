@@ -7,6 +7,8 @@ graphs_bp = Blueprint("graphs", __name__)
 @graphs_bp.route('/get/sensor/data', methods=["GET"])
 @jwt_required
 def get_sensor_data():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -23,4 +25,5 @@ def get_sensor_data():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
