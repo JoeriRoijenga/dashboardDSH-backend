@@ -3,8 +3,6 @@ from passlib.hash import sha256_crypt
 from connection_settings import connect, close
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, create_refresh_token, \
     jwt_refresh_token_required, get_raw_jwt, get_jti
-import time
-import datetime
  
 users_bp = Blueprint("users", __name__)
 
