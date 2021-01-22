@@ -43,7 +43,6 @@ def get_sensors():
 
     try:
         connection, cursor = connect()
-
         cursor.execute("SELECT sensors.id, sensors.name, sensor_types.name FROM sensors JOIN sensor_types ON sensors.sensor_types_id = sensor_types.id;")
         
         returnData = []
