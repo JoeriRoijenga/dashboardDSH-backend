@@ -75,6 +75,31 @@ def get_sensors(_id):
             close(connection)
 
 
+@settings_bp.route('/get/sensors', methods=["GET"])
+@jwt_required
+def get_all_sensors():
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT * FROM sensors;")
+        
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "name": row[1], "type": row[2]})
+            row = cursor.fetchone()
+
+        return jsonify({'sensors': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
+
+
 @settings_bp.route('/get/sensor/types', methods=["GET"])
 @jwt_required
 def get_sensor_types():
@@ -170,6 +195,29 @@ def get_actuators():
         if connection is not None:
             close(connection)
 
+@settings_bp.route('/get/rules', methods=["GET"])
+@jwt_required
+def get_rules():
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT rules.id, rules.value, rules.type, respond_value, sensors.name, actuators.name FROM rules JOIN actuators ON actuators.id = rules.actuators_id JOIN sensors ON sensors.id = rules.sensors_id")
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "sensor_name": row[4], "actuator_name": row[5], "type": row[2], "value": row[1], "respond_value": row[3]})
+            row = cursor.fetchone()
+
+        return jsonify({'rules': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
+
 
 @settings_bp.route('/add/rules', methods=["POST"])
 @jwt_required
@@ -177,7 +225,8 @@ def add_rules():
     connection = None
 
     if (request.is_json):
-        rules = request.get_json()["rules"]
+        rules = request.get_json()
+        print(rules)
         try:
             connection, cursor = connect()
     
@@ -215,7 +264,7 @@ def edit_rules(_id):
 
 @settings_bp.route('/delete/rules/<string:_id>', methods=["DELETE"])
 @jwt_required
-def delet_rules(_id):
+def delete_rules(_id):
     connection = None
 
     if (request.is_json):

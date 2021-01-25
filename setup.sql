@@ -164,7 +164,7 @@ CREATE TABLE dbo.rules (
   [type] VARCHAR(45) NOT NULL,
   [value] INT NOT NULL,
   [respond_value] INT NOT NULL,
-  PRIMARY KEY ([sensors_id], [actuators_id])
+  PRIMARY KEY ([id])
  ,
   CONSTRAINT [fk_sensors_has_actuators_sensors]
     FOREIGN KEY ([sensors_id])
