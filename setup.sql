@@ -158,12 +158,13 @@ CREATE INDEX [fk_actuators_actuator_types1_idx] ON dbo.actuators ([actuator_type
 -- SQLINES DEMO *** Table `dbo`.`rules`
 -- SQLINES DEMO *** ------------------------------------
 CREATE TABLE dbo.rules (
+  [id] INT NOT NULL IDENTITY,
   [sensors_id] INT NOT NULL,
   [actuators_id] INT NOT NULL,
   [type] VARCHAR(45) NOT NULL,
   [value] INT NOT NULL,
   [respond_value] INT NOT NULL,
-  PRIMARY KEY ([sensors_id], [actuators_id])
+  PRIMARY KEY ([id])
  ,
   CONSTRAINT [fk_sensors_has_actuators_sensors]
     FOREIGN KEY ([sensors_id])

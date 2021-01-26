@@ -7,6 +7,8 @@ settings_bp = Blueprint("settings", __name__)
 @settings_bp.route('/get/general', methods=["GET"])
 @jwt_required
 def get_general_settings():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -23,12 +25,14 @@ def get_general_settings():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
-
+        if connection is not None:
+            close(connection)
 
 @settings_bp.route('/save/general', methods=["PUT"])
 @jwt_required
 def save_general_settings():
+    connection = None
+
     if (request.is_json):
         settings = request.get_json()["settings"]
         try:
@@ -42,12 +46,15 @@ def save_general_settings():
         except:
             return jsonify({'error': 'Unknown Error'}), 400
         finally:
-            close(connection)
+            if connection is not None:
+                close(connection)
 
 
 @settings_bp.route('/get/sensors/<string:_id>', methods=["GET"])
 @jwt_required
 def get_sensors(_id):
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -64,12 +71,40 @@ def get_sensors(_id):
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
+
+
+@settings_bp.route('/get/sensors', methods=["GET"])
+@jwt_required
+def get_all_sensors():
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT * FROM sensors;")
+        
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "name": row[1], "type": row[2]})
+            row = cursor.fetchone()
+
+        return jsonify({'sensors': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/get/sensor/types', methods=["GET"])
 @jwt_required
 def get_sensor_types():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -86,12 +121,15 @@ def get_sensor_types():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/get/sensor/type/notifications/<string:_id>', methods=["GET"])
 @jwt_required
 def get_sensor_type_notifications(_id):
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -108,12 +146,15 @@ def get_sensor_type_notifications(_id):
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
 
 
 @settings_bp.route('/save/sensor/type/notifications/<string:_id>', methods=["PUT"])
 @jwt_required
 def save_sensor_type_notifications(_id):
+    connection = None
+
     if (request.is_json):
         settings = request.get_json()["settings"]
         try:
@@ -127,11 +168,15 @@ def save_sensor_type_notifications(_id):
         except:
             return jsonify({'error': 'Unknown Error'}), 400
         finally:
-            close(connection)
+            if connection is not None:
+                close(connection)
+
 
 @settings_bp.route('/get/actuators', methods=["GET"])
 @jwt_required
 def get_actuators():
+    connection = None
+
     try:
         connection, cursor = connect()
 
@@ -147,4 +192,91 @@ def get_actuators():
     except:
         return jsonify({'error': 'Unknown Error'}), 400
     finally:
-        close(connection)
+        if connection is not None:
+            close(connection)
+
+@settings_bp.route('/get/rules', methods=["GET"])
+@jwt_required
+def get_rules():
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT rules.id, rules.value, rules.type, respond_value, sensors.name, actuators.name FROM rules JOIN actuators ON actuators.id = rules.actuators_id JOIN sensors ON sensors.id = rules.sensors_id")
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "sensor_name": row[4], "actuator_name": row[5], "type": row[2], "value": row[1], "respond_value": row[3]})
+            row = cursor.fetchone()
+
+        return jsonify({'rules': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
+
+
+@settings_bp.route('/add/rules', methods=["POST"])
+@jwt_required
+def add_rules():
+    connection = None
+
+    if (request.is_json):
+        rules = request.get_json()
+        print(rules)
+        try:
+            connection, cursor = connect()
+    
+            cursor.execute("INSERT INTO rules ( \"sensors_id\", \"actuators_id\", \"type\", \"value\", \"respond_value\") VALUES (?, ?, ?, ?, ?);", rules['sensors_id'], rules['actuators_id'], rules['type'], rules['value'], rules['respond_value'])
+            connection.commit()
+
+            return jsonify({'message': "success"}), 200
+        except:
+            return jsonify({'error': 'Unknown Error'}), 400
+        finally:
+            if connection is not None:
+                close(connection)
+
+
+@settings_bp.route('/edit/rules/<string:_id>', methods=["PUT"])
+@jwt_required
+def edit_rules(_id):
+    connection = None
+
+    if (request.is_json):
+        rules = request.get_json()["rules"]
+        try:
+            connection, cursor = connect()
+    
+            cursor.execute("UPDATE rules SET \"sensors_id\" = ?, \"actuators_id\" = ?, \"type\" = ?, \"value\" = ?, \"respond_value\" = ? WHERE \"id\" = ?;", rules['sensors_id'], rules['actuators_id'], rules['type'], rules['value'], rules['respond_value'], _id)
+            connection.commit()
+            
+            return jsonify({'message': "success"}), 200
+        except:
+            return jsonify({'error': 'Unknown Error'}), 400
+        finally:
+            if connection is not None:
+                close(connection)
+
+
+@settings_bp.route('/delete/rules/<string:_id>', methods=["DELETE"])
+@jwt_required
+def delete_rules(_id):
+    connection = None
+
+    if (request.is_json):
+        try:
+            connection, cursor = connect()
+    
+            cursor.execute("DELETE FROM rules WHERE \"id\" = ?;", _id)
+            connection.commit()
+            
+            return jsonify({'message': "success"}), 200
+        except:
+            return jsonify({'error': 'Unknown Error'}), 400
+        finally:
+            if connection is not None:
+                close(connection)
