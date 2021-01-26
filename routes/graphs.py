@@ -10,7 +10,7 @@ def get_sensor_data():
     try:
         connection, cursor = connect()
 
-        cursor.execute("SELECT sensor_id, datetime, value FROM sensor_data;")
+        cursor.execute("SELECT \"sensors_id\", \"datetime\", \"value\" FROM sensor_data;")
         
         returnData = []
         row = cursor.fetchone()
