@@ -135,25 +135,6 @@ def get_user(_id):
         if connection is not None:
                 close(connection)
 
-@users_bp.route('/delete/<string:_id>', methods=["DELETE"])
-@jwt_required
-def delete_user(_id):
-    connection = None
-
-    try:
-        connection, cursor = connect()
-
-        if check_if_user_exists_by_id(cursor, _id):
-            cursor.execute("DELETE FROM users WHERE id = ?;", _id)
-            cursor.commit()
-
-            return jsonify({'message': "Success"}), 200
-        return jsonify({'message': 'User Doesn\'t Exists'}), 401
-    except:
-        return jsonify({'error': 'Unknown Error'}), 400
-    finally:
-        close(connection)
-
 @users_bp.route('/update/<string:_id>', methods=["PUT"])
 @jwt_required
 def update_user(_id):
