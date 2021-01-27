@@ -195,6 +195,32 @@ def get_actuators():
         if connection is not None:
             close(connection)
 
+
+@settings_bp.route('/get/rule/<string:_id>', methods=["GET"])
+@jwt_required
+def get_rule(_id):
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("SELECT id, value, type, respond_value, actuators_id, sensors_id FROM rules WHERE rules.id = ?;", _id)
+
+        returnData = []
+        row = cursor.fetchone()
+
+        while row:
+            returnData.append({"id": row[0], "sensor_id": row[5], "actuator_id": row[4], "type": row[2], "value": row[1], "respond_value": row[3]})
+            row = cursor.fetchone()
+
+        return jsonify({'rule': returnData}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
+
+
 @settings_bp.route('/get/rules', methods=["GET"])
 @jwt_required
 def get_rules():
@@ -204,6 +230,7 @@ def get_rules():
         connection, cursor = connect()
 
         cursor.execute("SELECT rules.id, rules.value, rules.type, respond_value, sensors.name, actuators.name FROM rules JOIN actuators ON actuators.id = rules.actuators_id JOIN sensors ON sensors.id = rules.sensors_id")
+
         returnData = []
         row = cursor.fetchone()
 
@@ -247,7 +274,8 @@ def edit_rules(_id):
     connection = None
 
     if (request.is_json):
-        rules = request.get_json()["rules"]
+        rules = request.get_json()
+
         try:
             connection, cursor = connect()
     
@@ -267,16 +295,15 @@ def edit_rules(_id):
 def delete_rules(_id):
     connection = None
 
-    if (request.is_json):
-        try:
-            connection, cursor = connect()
-    
-            cursor.execute("DELETE FROM rules WHERE \"id\" = ?;", _id)
-            connection.commit()
-            
-            return jsonify({'message': "success"}), 200
-        except:
-            return jsonify({'error': 'Unknown Error'}), 400
-        finally:
-            if connection is not None:
-                close(connection)
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("DELETE FROM rules WHERE \"id\" = ?;", _id)
+        connection.commit()
+        
+        return jsonify({'message': "success"}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)

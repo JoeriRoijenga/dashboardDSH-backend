@@ -79,6 +79,25 @@ def create_user():
     return jsonify({'error': 'Wrong Format'}), 400
 
 
+@users_bp.route('/delete/<string:_id>', methods=["DELETE"])
+@jwt_required
+def delete_user(_id):
+    connection = None
+
+    try:
+        connection, cursor = connect()
+
+        cursor.execute("DELETE FROM users WHERE \"id\" = ?;", _id)
+        connection.commit()
+        
+        return jsonify({'message': "success"}), 200
+    except:
+        return jsonify({'error': 'Unknown Error'}), 400
+    finally:
+        if connection is not None:
+            close(connection)
+
+
 @users_bp.route('/get/all', methods=["GET"])
 @jwt_required
 def get_users():
@@ -87,7 +106,7 @@ def get_users():
     try:
         connection, cursor = connect()
 
-        cursor.execute("SELECT name, mail, admin FROM users;")
+        cursor.execute("SELECT id, name, mail, admin FROM users;")
         users = fetch_all_users(cursor)
         return jsonify({'users': users}), 200
     except:
@@ -106,7 +125,7 @@ def get_user(_id):
         connection, cursor = connect()
 
         if check_if_user_exists_by_id(cursor, _id):
-            cursor.execute("SELECT name, mail, admin FROM users WHERE id = ?;", _id)
+            cursor.execute("SELECT id, name, mail, admin FROM users WHERE id = ?;", _id)
 
             return jsonify({'user': fetch_all_users(cursor)}), 200
         return jsonify({'message': 'User Doesn\'t Exists'}), 401
@@ -123,12 +142,14 @@ def update_user(_id):
     connection = None
 
     if request.is_json:
-        user = request.get_json()["user"]
+        user = request.get_json()
 
         try:
             connection, cursor = connect()
             if check_if_user_exists_by_id(cursor, _id):
                 cursor.execute("UPDATE users SET name = ?, mail = ?, admin = ? WHERE id = ?;", user["name"], user["mail"], user['admin'], _id)
+                connection.commit()
+
                 return jsonify({'message': 'OK'}), 200
             return jsonify({'message': 'User Doesn\'t Exists'}), 401
         except:
@@ -156,7 +177,7 @@ def fetch_all_users(cursor):
     count = 0
 
     while row:
-        dictionary[count] = {'name': row[0], 'mail': row[1], 'admin': row[2]}
+        dictionary[count] = {"id": row[0], 'name': row[1], 'mail': row[2], 'admin': row[3]}
         row = cursor.fetchone()
         count += 1
 
