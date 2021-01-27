@@ -31,5 +31,3 @@ def register_blueprints():
 if __name__ == '__main__':
     register_blueprints()
     app.run(host='192.168.2.30')
-    # app.run(host='77.164.48.143')
-    
