@@ -146,7 +146,10 @@ def update_user(_id):
         try:
             connection, cursor = connect()
             if check_if_user_exists_by_id(cursor, _id):
-                cursor.execute("UPDATE users SET name = ?, mail = ?, admin = ? WHERE id = ?;", user["name"], user["mail"], user['admin'], _id)
+                if "pwd" in user:
+                    cursor.execute("UPDATE users SET name = ?, mail = ?, admin = ?, password = ? WHERE id = ?;", user["name"], user["mail"], user['admin'], sha256_crypt.hash(user["pwd"]), _id)
+                else:
+                    cursor.execute("UPDATE users SET name = ?, mail = ?, admin = ? WHERE id = ?;", user["name"], user["mail"], user['admin'], _id)
                 connection.commit()
 
                 return jsonify({'message': 'OK'}), 200
