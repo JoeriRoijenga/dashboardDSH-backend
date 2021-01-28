@@ -17,14 +17,14 @@ def login_user():
             connection, cursor = connect()
 
             if check_if_user_exists_by_mail(cursor, user['mail']):
-                cursor.execute("SELECT id, name, password FROM users WHERE mail = ?;", user['mail'])
+                cursor.execute("SELECT id, name, password, admin FROM users WHERE mail = ?;", user['mail'])
                 row = cursor.fetchone()
 
                 while row:
                     if sha256_crypt.verify(user["pwd"], row[2]):
                         tokens = {
-                            'access_token': create_access_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']}),
-                            'refresh_token': create_refresh_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail']})
+                            'access_token': create_access_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail'], 'admin': row[3]}),
+                            'refresh_token': create_refresh_token(identity={'id': row[0], 'user': row[1], 'mail': user['mail'], 'admin': row[3]})
                         }
 
                         return jsonify({'tokens': tokens}), 200
